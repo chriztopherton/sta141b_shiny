@@ -19,17 +19,20 @@ library(leaflet)
 library(shiny)
 library(shinydashboard)
 library(rsconnect)
-
-api_key = "ENTER KEY HERE"
-
+#----------------------------------------------------------------------------------------------------
+#register for a free google maps api key at https://cloud.google.com/maps-platform/pricing
+api_key = "ENTER API KEY"
 register_google(key = api_key)
+#---------------------------------------------------------------------------------------------------------
+
 
 ui <- fluidPage(theme=shinytheme("spacelab"),
                 
                 titlePanel("Google Maps API"),
-                sidebarLayout
+                #------------------------------------------------------------------------------------------
                 (position = "right",
                   
+                  # user input for Point A
                   sidebarPanel
                   (
                     selectInput
@@ -42,6 +45,7 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                       selected = "UCD Pavillion"
                     ),
                     
+                    # user input for Point B
                     selectInput
                     (
                       inputId = "destination", 
@@ -51,6 +55,8 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                                   "Tahoe City"),
                       selected = "Golden 1 Center"
                     ),
+                    
+                    #whether or not distance matrix is shown
                     checkboxInput
                     (
                       inputId = "show_distance",
@@ -58,6 +64,7 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                       value = TRUE)
                   ),
                   
+                  #----------------------------------------------------------------------------------------------------
                   mainPanel
                   (
                     tabsetPanel
@@ -73,7 +80,7 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                     )
                   )
                 )
-
+#------------------------------------------------------------------------------------------------------------------------
 server <- function(input, output) {
   
   doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
@@ -84,16 +91,20 @@ server <- function(input, output) {
                       key = paste(api_key))
   })
   
+  
+  #the lines below can be commented out to prevent API requests
+  
+  #maps + route
+  
   #given response object, use mp_get_routes to create a spatial layer of route lines
-  r = reactive({mp_get_routes(doc())})
+  #r = reactive({mp_get_routes(doc())})
   #print(r)
   
-  seg = reactive({mp_get_segments(doc())})
+  #seg = reactive({mp_get_segments(doc())})
   #print(seg)
   
   #plots coordinates and directions
-  pal = reactive({colorFactor(palette = sample(colors(), length(unique(seg()$segment_id))),
-                    domain = seg()$segment_id)})
+  #pal = reactive({colorFactor(palette = sample(colors(), length(unique(seg()$segment_id))),domain = seg()$segment_id)})
   
   output$map <- renderLeaflet({
     req(doc())
@@ -103,16 +114,17 @@ server <- function(input, output) {
     #coord = data.frame(p1,p2)
     
     
-    leaflet(seg()) %>% 
+    #leaflet(seg()) %>% 
       #addProviderTiles() %>%
-      addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
-      addPolylines(opacity = 3, 
-                   weight = 7) %>% 
+      #addProviderTiles(providers$Esri.NatGeoWorldMap) %>% 
+      #addPolylines(opacity = 3, 
+                   #weight = 7) %>% 
                    #color = ~pal()(seg()$segment_id), 
                    #popup = ~seg()$instructions) %>% 
-      addTiles() 
+      #addTiles() 
   })
   
+  #distance matrix
   output$distancetable <- renderTable({
     
     locations = c(input$origin,input$destination)
