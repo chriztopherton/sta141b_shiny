@@ -17,6 +17,12 @@ library(jsonlite)
 library(httr)
 ```
 
+Links I used:
+
+## https://rpubs.com/fitzpatrickm8/yelpapi
+## https://github.com/richierocks/yelp
+
+
 
 ## TWITTER
 ```{r}
@@ -36,7 +42,7 @@ rt %>% select(text)
 ## YELP
 
 ```{r}
-#https://rpubs.com/fitzpatrickm8/yelpapi
+
 
 yelp_client_ID = Sys.getenv("yelp_client_ID")
 yelp_key = Sys.getenv("yelp_key")
@@ -48,9 +54,6 @@ res <- POST("https://api.yelp.com/oauth2/token",
                         client_secret = yelp_key))
 
 token <- content(res)$access_token
-```
-
-```{r}
 
 yelp <- "https://api.yelp.com"
 term <- "cookies"
@@ -64,47 +67,13 @@ url <- modify_url(yelp, path = c("v3", "businesses", "search"),
                                radius = radius))
 res <- GET(url, add_headers('Authorization' = paste("Bearer", yelp_key)))
 
-results <- content(res)
+results <- content(res,as="text")
 ```
 
-
-
 ```{r}
-yelp_httr_parse <- function(x) {
+yelp_results = data.frame(fromJSON(results))
+names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
 
-  parse_list <- list(id = x$id, 
-                     name = x$name, 
-                     rating = x$rating, 
-                     review_count = x$review_count, 
-                     latitude = x$coordinates$latitude, 
-                     longitude = x$coordinates$longitude, 
-                     address1 = x$location$address1, 
-                     city = x$location$city, 
-                     state = x$location$state, 
-                     distance = x$distance)
-  
-  parse_list <- lapply(parse_list, FUN = function(x) ifelse(is.null(x), "", x))
-  
-  df <- data_frame(id=parse_list$id,
-                   name=parse_list$name, 
-                   rating = parse_list$rating, 
-                   review_count = parse_list$review_count, 
-                   latitude=parse_list$latitude, 
-                   longitude = parse_list$longitude, 
-                   address1 = parse_list$address1, 
-                   city = parse_list$city, 
-                   state = parse_list$state, 
-                   distance= parse_list$distance)
-  df
-}
-
-results_list <- lapply(results$businesses, FUN = yelp_httr_parse)
-
-business_data <- do.call("rbind", results_list)
-business_data
-```
-```{r}
-#https://github.com/richierocks/yelp
-
+yelp_results
 ```
 

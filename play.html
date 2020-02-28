@@ -378,6 +378,13 @@ $(document).ready(function () {
 </div>
 
 
+<p>Links I used:</p>
+<div id="httpsrpubs.comfitzpatrickm8yelpapi" class="section level2">
+<h2><a href="https://rpubs.com/fitzpatrickm8/yelpapi" class="uri">https://rpubs.com/fitzpatrickm8/yelpapi</a></h2>
+</div>
+<div id="httpsgithub.comrichierocksyelp" class="section level2">
+<h2><a href="https://github.com/richierocks/yelp" class="uri">https://github.com/richierocks/yelp</a></h2>
+</div>
 <div id="twitter" class="section level2">
 <h2>TWITTER</h2>
 <pre class="r"><code>#install.packages(&quot;rtweet&quot;)
@@ -394,18 +401,16 @@ rt %&gt;% select(text)</code></pre>
 <pre><code>## # A tibble: 6 x 1
 ##   text                                                                     
 ##   &lt;chr&gt;                                                                    
-## 1 &quot;Senior Civil Engineer &amp;amp;quot; Civil Engineering Land Development - #…
-## 2 &quot;Civil CAD Drafter - Civil Land Development Drafting (Sacramento) - #Sac…
-## 3 &quot;#Sacramento I’m coming to fuck yo city up ! Who out there ?&quot;            
-## 4 &quot;Food.\n\n#vegas #chicago #newyork #losangeles #miami #sanfrancisco #hou…
-## 5 &quot;Northern California city struggles with #coronavirus mystery - https://…
-## 6 &quot;#gaming #games #xbox #xboxone #xboxonex #raw #renegade #ill #916 #spoon…</code></pre>
+## 1 &quot;#Basket, #Nba: i #Lakers travolgono #GoldenState senza #LeBron, #Gallin…
+## 2 &quot;Senior Civil Engineer &amp;amp;quot; Civil Engineering Land Development - #…
+## 3 &quot;Civil CAD Drafter - Civil Land Development Drafting (Sacramento) - #Sac…
+## 4 &quot;#Sacramento I’m coming to fuck yo city up ! Who out there ?&quot;            
+## 5 &quot;Food.\n\n#vegas #chicago #newyork #losangeles #miami #sanfrancisco #hou…
+## 6 &quot;Northern California city struggles with #coronavirus mystery - https://…</code></pre>
 </div>
 <div id="yelp" class="section level2">
 <h2>YELP</h2>
-<pre class="r"><code>#https://rpubs.com/fitzpatrickm8/yelpapi
-
-yelp_client_ID = Sys.getenv(&quot;yelp_client_ID&quot;)
+<pre class="r"><code>yelp_client_ID = Sys.getenv(&quot;yelp_client_ID&quot;)
 yelp_key = Sys.getenv(&quot;yelp_key&quot;)
 
 #create token with provided id, key
@@ -414,8 +419,9 @@ res &lt;- POST(&quot;https://api.yelp.com/oauth2/token&quot;,
                         client_id = yelp_client_ID,
                         client_secret = yelp_key))
 
-token &lt;- content(res)$access_token</code></pre>
-<pre class="r"><code>yelp &lt;- &quot;https://api.yelp.com&quot;
+token &lt;- content(res)$access_token
+
+yelp &lt;- &quot;https://api.yelp.com&quot;
 term &lt;- &quot;cookies&quot;
 location &lt;- &quot;Davis, CA&quot;
 categories &lt;- NULL
@@ -427,52 +433,108 @@ url &lt;- modify_url(yelp, path = c(&quot;v3&quot;, &quot;businesses&quot;, &quo
                                radius = radius))
 res &lt;- GET(url, add_headers('Authorization' = paste(&quot;Bearer&quot;, yelp_key)))
 
-results &lt;- content(res)</code></pre>
-<pre class="r"><code>yelp_httr_parse &lt;- function(x) {
+results &lt;- content(res,as=&quot;text&quot;)</code></pre>
+<pre><code>## No encoding supplied: defaulting to UTF-8.</code></pre>
+<pre class="r"><code>yelp_results = data.frame(fromJSON(results))
+names(yelp_results) = str_remove(list(names(yelp_results))[[1]],&quot;businesses.&quot;)
 
-  parse_list &lt;- list(id = x$id, 
-                     name = x$name, 
-                     rating = x$rating, 
-                     review_count = x$review_count, 
-                     latitude = x$coordinates$latitude, 
-                     longitude = x$coordinates$longitude, 
-                     address1 = x$location$address1, 
-                     city = x$location$city, 
-                     state = x$location$state, 
-                     distance = x$distance)
-  
-  parse_list &lt;- lapply(parse_list, FUN = function(x) ifelse(is.null(x), &quot;&quot;, x))
-  
-  df &lt;- data_frame(id=parse_list$id,
-                   name=parse_list$name, 
-                   rating = parse_list$rating, 
-                   review_count = parse_list$review_count, 
-                   latitude=parse_list$latitude, 
-                   longitude = parse_list$longitude, 
-                   address1 = parse_list$address1, 
-                   city = parse_list$city, 
-                   state = parse_list$state, 
-                   distance= parse_list$distance)
-  df
-}
-
-results_list &lt;- lapply(results$businesses, FUN = yelp_httr_parse)</code></pre>
-<pre><code>## Warning: `data_frame()` is deprecated, use `tibble()`.
-## This warning is displayed once per session.</code></pre>
-<pre class="r"><code>business_data &lt;- do.call(&quot;rbind&quot;, results_list)
-business_data</code></pre>
-<pre><code>## # A tibble: 7 x 10
-##   id    name  rating review_count latitude longitude address1 city  state
-##   &lt;chr&gt; &lt;chr&gt;  &lt;dbl&gt;        &lt;int&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;
-## 1 P0Dx… Uppe…    4             59     38.6     -122. &quot;634 G … Davis CA   
-## 2 URI4… Davi…    4            236     38.5     -122. &quot;620 G … Davis CA   
-## 3 Dxva… Bubb…    4.5           32     38.6     -121. &quot;&quot;       Sacr… CA   
-## 4 e3fZ… Rotz…    5              4     38.6     -121. &quot;&quot;       Sacr… CA   
-## 5 jIgD… Sact…    4            176     38.7     -122. &quot;&quot;       Sacr… CA   
-## 6 NDpe… The …    4.5           12     38.1     -121. &quot;2715 W… Lodi  CA   
-## 7 9Acz… Davi…    5             31     37.6     -122. &quot;&quot;       Paci… CA   
-## # … with 1 more variable: distance &lt;dbl&gt;</code></pre>
-<pre class="r"><code>#https://github.com/richierocks/yelp</code></pre>
+yelp_results</code></pre>
+<pre><code>##                       id                        alias               name
+## 1 P0DxZLXc-kNVu6rFOswgUg     upper-crust-baking-davis Upper Crust Baking
+## 2 URI4y1OkYu0x1o9RT4XvTQ       davis-food-co-op-davis   Davis Food Co-op
+## 3 DxvaQQO6Tqyjq8Ti6jcGTA     bubble-cone-sacramento-6        Bubble Cone
+## 4 e3fZQu3_-T3dQrQFVcKDEQ rotzys-mad-batter-sacramento Rotzy's Mad Batter
+## 5 jIgD3KKG9HEs0FI2IEnalQ       sactomofo-sacramento-6          SactoMofo
+## 6 NDpejd7sBAGrU2D7dml0pg          the-sweet-life-lodi     The Sweet Life
+## 7 9AczSWX37-qY3MYHHtJVtQ       davids-bagels-pacifica     David's Bagels
+##                                                              image_url
+## 1 https://s3-media4.fl.yelpcdn.com/bphoto/ZnsaEa6WU9Fq9VDcL_yzEw/o.jpg
+## 2 https://s3-media3.fl.yelpcdn.com/bphoto/1lYfJrPPvrrPLVsjOOT3SQ/o.jpg
+## 3 https://s3-media3.fl.yelpcdn.com/bphoto/5dPClYWvFSAqj7XosQdbNw/o.jpg
+## 4 https://s3-media3.fl.yelpcdn.com/bphoto/tpS5CMqxCagMpvql_HRUEg/o.jpg
+## 5 https://s3-media2.fl.yelpcdn.com/bphoto/V7UoKf3e9Vz74dnrgJG8FA/o.jpg
+## 6 https://s3-media1.fl.yelpcdn.com/bphoto/5dzBmGRJu6kcVqodTMhQjQ/o.jpg
+## 7 https://s3-media2.fl.yelpcdn.com/bphoto/JwG1D-npZvEDTKV_aFHufA/o.jpg
+##   is_closed
+## 1     FALSE
+## 2     FALSE
+## 3     FALSE
+## 4     FALSE
+## 5     FALSE
+## 6     FALSE
+## 7     FALSE
+##                                                                                                                                                                                         url
+## 1     https://www.yelp.com/biz/upper-crust-baking-davis?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 2       https://www.yelp.com/biz/davis-food-co-op-davis?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 3     https://www.yelp.com/biz/bubble-cone-sacramento-6?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 4 https://www.yelp.com/biz/rotzys-mad-batter-sacramento?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 5       https://www.yelp.com/biz/sactomofo-sacramento-6?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 6          https://www.yelp.com/biz/the-sweet-life-lodi?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+## 7       https://www.yelp.com/biz/davids-bagels-pacifica?adjust_creative=qVW2hKTpYxplgZ1BnFMHLw&amp;utm_campaign=yelp_api_v3&amp;utm_medium=api_v3_business_search&amp;utm_source=qVW2hKTpYxplgZ1BnFMHLw
+##   review_count
+## 1           59
+## 2          236
+## 3           32
+## 4            4
+## 5          176
+## 6           12
+## 7           31
+##                                                     categories rating
+## 1                       bakeries, desserts, Bakeries, Desserts    4.0
+## 2                               grocery, delis, Grocery, Delis    4.0
+## 3                  desserts, foodtrucks, Desserts, Food Trucks    4.5
+## 4                  desserts, foodtrucks, Desserts, Food Trucks    5.0
+## 5                                      foodtrucks, Food Trucks    4.0
+## 6 icecream, foodtrucks, Ice Cream &amp; Frozen Yogurt, Food Trucks    4.5
+## 7                 fooddeliveryservices, Food Delivery Services    5.0
+##   coordinates.latitude coordinates.longitude transactions price
+## 1             38.55012             -121.7401         NULL    $$
+## 2             38.54943             -121.7399         NULL    $$
+## 3             38.57621             -121.4832         NULL    $$
+## 4             38.57192             -121.4725         NULL    $$
+## 5             38.67463             -121.5086         NULL    $$
+## 6             38.11607             -121.3092         NULL     $
+## 7             37.63560             -122.4891         NULL     $
+##     location.address1 location.address2 location.address3 location.city
+## 1            634 G St                                             Davis
+## 2            620 G St                                             Davis
+## 3                                  &lt;NA&gt;                      Sacramento
+## 4                &lt;NA&gt;              &lt;NA&gt;                      Sacramento
+## 5                                                            Sacramento
+## 6 2715 W Kettleman Ln  Ste 203, PMB 365              &lt;NA&gt;          Lodi
+## 7                                                    &lt;NA&gt;      Pacifica
+##   location.zip_code location.country location.state
+## 1             95616               US             CA
+## 2             95616               US             CA
+## 3             95811               US             CA
+## 4             95816               US             CA
+## 5             95835               US             CA
+## 6             95242               US             CA
+## 7             94044               US             CA
+##                                location.display_address        phone
+## 1                             634 G St, Davis, CA 95616 +15307501180
+## 2                             620 G St, Davis, CA 95616 +15307582667
+## 3                                  Sacramento, CA 95811 +19168124108
+## 4                                  Sacramento, CA 95816 +19166256900
+## 5                                  Sacramento, CA 95835 +19167226636
+## 6 2715 W Kettleman Ln, Ste 203, PMB 365, Lodi, CA 95242 +17146045741
+## 7                                    Pacifica, CA 94044 +14158472294
+##    display_phone     distance total region.center.longitude
+## 1 (530) 750-1180     41.07989     7               -121.7405
+## 2 (530) 758-2667     80.21102     7               -121.7405
+## 3 (916) 812-4108  22036.70129     7               -121.7405
+## 4 (916) 625-6900  24379.68224     7               -121.7405
+## 5 (916) 722-6636  22103.67988     7               -121.7405
+## 6 (714) 604-5741  61188.85906     7               -121.7405
+## 7 (415) 847-2294 122956.87980     7               -121.7405
+##   region.center.latitude
+## 1               38.55003
+## 2               38.55003
+## 3               38.55003
+## 4               38.55003
+## 5               38.55003
+## 6               38.55003
+## 7               38.55003</code></pre>
 </div>
 
 
