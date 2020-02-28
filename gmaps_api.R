@@ -19,10 +19,18 @@ library(leaflet)
 library(shiny)
 library(shinydashboard)
 library(rsconnect)
+library(rromeo)
+library(rtweet)
 #----------------------------------------------------------------------------------------------------
 #register for a free google maps api key at https://cloud.google.com/maps-platform/pricing
-api_key = "Enter api key here"
+api_key = Sys.getenv("api_key")
 register_google(key = api_key)
+
+news_key = Sys.getenv("news_key")
+
+yelp_client_ID = Sys.getenv("yelp_client_ID")
+yelp_key = Sys.getenv("yelp_key")
+
 #---------------------------------------------------------------------------------------------------------
 
 
@@ -71,10 +79,10 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                       tabPanel("Google Maps",
                                leafletOutput(outputId = "map",
                                              width="100%",
-                                             height = "800")),
-                      tabPanel("Data",
+                                             height = "800"),
                                tableOutput(outputId = "distancetable")),
-                      tabPanel("Tweets/Info/Food/News/")
+                      tabPanel("Yelp"),
+                      tabPanel("Twitter")
                     )
                     )
                   )
@@ -105,21 +113,31 @@ server <- function(input, output) {
   #plots coordinates and directions
   pal = reactive({colorFactor(palette = sample(colors(), length(unique(seg()$segment_id))),domain = seg()$segment_id)})
   
-  output$map <- renderLeaflet({
-    req(doc())
-    
-    p1 = c(geocode(paste(input$origin))$lat,geocode(paste(input$origin))$lon)
-    p2 = c(geocode(paste(input$destination))$lat,geocode(paste(input$destination))$lon)
-    coord = data.frame(p1,p2)
-    
-    
-    leaflet(seg()) %>%
-      addPolylines(opacity = 3,
-                   weight = 7,
-                   color = ~pal()(seg()$segment_id),
-                   popup = ~seg()$instructions) %>%
-      addTiles()
-  })
+  # output$map <- renderLeaflet({
+  #   req(doc())
+  # 
+  #   p1 = c(geocode(paste(input$origin))$lat,geocode(paste(input$origin))$lon)
+  #   p2 = c(geocode(paste(input$destination))$lat,geocode(paste(input$destination))$lon)
+  #   coord = data.frame(p1,p2)
+  # 
+  # 
+  #   leaflet(seg()) %>%
+  #     addProviderTiles(providers$Esri.WorldStreetMap) %>%
+  #     addPolylines(opacity = 3,
+  #                  weight = 7,
+  #                  #color = ~pal()(seg()$segment_id),
+  #                  color = "blue",
+  #                  popup = ~seg()$instructions) %>%
+  #     addTiles() %>% addMarkers(lng = p1[2],lat = p1[1], 
+  #                               label = paste(input$origin),
+  #                               labelOptions = labelOptions(noHide = T, 
+  #                                                           textsize = "15px")) %>% 
+  #     addMarkers(lng = p2[2],lat = p2[1], 
+  #                label = paste(input$destination),
+  #                labelOptions = labelOptions(noHide = T, 
+  #                                            textsize = "15px")) 
+  #     #addEasyButton(easyButton(icon="fa-crosshairs", title="Locate Me",onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
+  # })
   
   #distance matrix
   output$distancetable <- renderTable({

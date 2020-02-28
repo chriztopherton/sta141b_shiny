@@ -15,6 +15,7 @@ library(tidytext)
 library(jsonlite)
 ## install rtweet from CRAN
 library(httr)
+library(rtweet)
 ```
 
 Links I used:
@@ -26,10 +27,6 @@ Links I used:
 
 ## TWITTER
 ```{r}
-#install.packages("rtweet")
-
-## load rtweet package
-library(rtweet)
 
 ## search for n tweets using the rstats hashtag
 rt <- search_tweets(
@@ -68,12 +65,11 @@ url <- modify_url(yelp, path = c("v3", "businesses", "search"),
 res <- GET(url, add_headers('Authorization' = paste("Bearer", yelp_key)))
 
 results <- content(res,as="text")
-```
 
-```{r}
 yelp_results = data.frame(fromJSON(results))
 names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
 
-yelp_results
+head(yelp_results)
 ```
+
 
