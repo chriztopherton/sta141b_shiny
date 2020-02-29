@@ -9,7 +9,7 @@
 ## NOTES
 
 
-### 2/28
+### 2/27
 
 - Each tab of the main panel will feature selections relevant to the chosen destination (i.e. what's going on in the news, what to do, where to eat, how's the weather??)
 
@@ -24,4 +24,5 @@
 - gather all inputs on startup/intro screen, then take in inputs to prepare the tabs
                                
 
-### 2/
+### 2/8
+- To work with branches: https://github.com/Kunena/Kunena-Forum/wiki/Create-a-new-branch-with-git-and-manage-branches
