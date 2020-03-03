@@ -37,6 +37,13 @@ yelp_client_ID = Sys.getenv("yelp_client_ID")
 yelp_key = Sys.getenv("yelp_key")
 
 #---------------------------------------------------------------------------------------------------------
+createLink <- function(val) {
+  sprintf('<a href="https://www.google.com/#q=%s" target="_blank" class="btn btn-primary">Info</a>',val)
+}
+#---------------------------------------------------------------------------------------------------------
+
+
+
 
 
 ui <- fluidPage(theme=shinytheme("darkly"),
@@ -107,9 +114,10 @@ ui <- fluidPage(theme=shinytheme("darkly"),
                                leafletOutput(outputId = "map",
                                              width="100%",
                                              height = "800"),
-                               tableOutput(outputId = "distancetable")),
-                      tabPanel("Yelp",DT::dataTableOutput(outputId = "places")),
-                      tabPanel("Twitter",DT::dataTableOutput(outputId = "tweets"))
+                               #tableOutput(outputId = "distancetable"),
+                               tableOutput(outputId = "dist_dur")),
+                      tabPanel("Yelp",dataTableOutput(outputId = "places")),
+                      tabPanel("Twitter",dataTableOutput(outputId = "tweets"))
                     )
                     )
                   )
@@ -131,7 +139,13 @@ server <- function(input, output, session) {
   #maps + route
   
   #given response object, use mp_get_routes to create a spatial layer of route lines
-  #r = reactive({mp_get_routes(doc())})
+  r = reactive({mp_get_routes(doc())})
+  
+  output$dist_dur <- renderTable({
+    c = data.frame(c("Distance",r()$distance_text),c("Duration",r()$duration_text))
+    names(c) = c("","")
+    c
+  })
   #print(r)
   
   seg = reactive({mp_get_segments(doc())})
@@ -165,35 +179,14 @@ server <- function(input, output, session) {
                  label = paste(input$destination),
                  labelOptions = labelOptions(noHide = T,
                                              textsize = "15px"))
-      #addEasyButton(easyButton(icon="fa-crosshairs", title="Locate Me",onClick=JS("function(btn, map){ map.locate({setView: true}); }")))
   })
   
-  #distance matrix
-  output$distancetable <- renderTable({
-     
-    locations = c(input$origin,input$destination)
-    dist = mp_matrix(origins= locations,
-                      destinations = locations,
-                      key = paste(maps_key))
 
-    m1 = mp_get_matrix(dist, value = "distance_text")
-     colnames(m1) = locations
-     rownames(m1) = locations
-
-     m2 = mp_get_matrix(dist, value = "duration_text")
-     colnames(m1) = locations
-     rownames(m1) = locations
-
-     if(input$show_distance){
-       DT::datatable(data = m1,rownames = FALSE)
-       m2
-       }
-})
   
   #------------------------------------------------------------------------------------------------------------------------
   
   
-  output$places <- DT::renderDataTable({
+  output$places <- renderDataTable({
     
     
     
@@ -222,19 +215,19 @@ server <- function(input, output, session) {
     yelp_results = data.frame(fromJSON(results))
     names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
     
-    DT::datatable(data =yelp_results %>% select(name,rating) %>% arrange(desc(rating)))
+    yelp_results %>% select(name,rating)
   })
   
   #------------------------------------------------------------------------------------------------------------------------
   
-  output$tweets <- DT::renderDataTable({
+  output$tweets <- renderDataTable({
     rt <- get_trends(
       "sacramento")
-    
-    DT::datatable(data =rt )
-    
-    
-  })
+    twit = rt %>% select(trend,url)
+    twit$link = createLink(twit$url)
+    return(twit)
+  
+  },escape=FALSE)
 }
 
 
