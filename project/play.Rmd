@@ -1,0 +1,53 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rtweet)
+# plotting and pipes - tidyverse!
+library(ggplot2)
+library(dplyr)
+# text mining library
+library(tidytext)
+library(jsonlite)
+## install rtweet from CRAN
+library(httr)
+library(rtweet)
+```
+
+
+
+
+
+
+```{r}
+Sys.setenv(yelp_client_ID='b1mvtJ6NN1Yr3llYIn0jkw')
+Sys.setenv(yelp_key='jDwHiw2npYP2mjdD0vmcJW_PG3RDz7eA6gmLdPGWAObdQ_G2kBG4-5GE_VMpyCSRT_oWXdHV3u9HDwSPbL4qSDl9pnkgdFrD3ZASmcIB4NlUY320H-0jXtfGaOhdXnYx')
+yelp_client_ID = Sys.getenv("yelp_client_ID")
+yelp_key = Sys.getenv("yelp_key")
+#create token with provided id, key
+res <- POST("https://api.yelp.com/oauth2/token",
+            body = list(grant_type = "client_credentials",
+                        client_id = yelp_client_ID,
+                        client_secret = yelp_key))
+token <- content(res)$access_token
+yelp <- "https://api.yelp.com"
+term <- "cookies"
+location <- "Davis, CA"
+categories <- NULL
+limit <- 50
+radius <- 100
+url <- modify_url(yelp, path = c("v3", "businesses", "search"),
+                  query = list(term = term, location = location, 
+                               limit = limit,
+                               radius = radius))
+res <- GET(url, add_headers('Authorization' = paste("Bearer", yelp_key)))
+results <- content(res,as="text")
+yelp_results = data.frame(fromJSON(results))
+names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
+head(yelp_results)
+```
+
