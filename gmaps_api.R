@@ -127,13 +127,13 @@ ui <- fluidPage(theme=shinytheme("darkly"),
 #------------------------------------------------------------------------------------------------------------------------
 server <- function(input, output, session) {
   
-  doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
-                                destination = input$destination,
-                                mode = c("driving", "transit", "walking", "bicycling"),
-                                alternatives = FALSE,
-                                waypoints = NULL,
-                                key = maps_key)
-  })
+#  doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
+#                                destination = input$destination,
+#                                mode = c("driving", "transit", "walking", "bicycling"),
+#                                alternatives = FALSE,
+#                                waypoints = NULL,
+#                                key = maps_key)
+#  })
   
   
   #the lines below can be commented out to prevent API requests
@@ -231,10 +231,11 @@ server <- function(input, output, session) {
 
   },escape=FALSE)
   
+  #--------------------------------------------------------------------------
   output$Hello <- renderPrint({
     print("Hi")
   })
-  
+  #-------------------------------------------
 }
 
 
