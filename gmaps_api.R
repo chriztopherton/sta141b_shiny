@@ -29,7 +29,9 @@ library(rtweet)
 #----------------------------------------------------------------------------------------------------
 #register for a free google maps api key at https://cloud.google.com/maps-platform/pricing
 #maps_key = Sys.getenv("maps_key")
-maps_key ="AIzaSyDrNIiVkzgtF-cFXyv2sEGKMoVe63wKA6E"
+
+#maps_key ="insert key"
+maps_key=Sys.getenv("maps_key")
 register_google(key = maps_key)
 
 news_key = Sys.getenv("news_key")
@@ -127,7 +129,7 @@ ui <- fluidPage(theme=shinytheme("darkly"),
 #------------------------------------------------------------------------------------------------------------------------
 server <- function(input, output, session) {
   
-#  doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
+ # doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
 #                                destination = input$destination,
 #                                mode = c("driving", "transit", "walking", "bicycling"),
 #                                alternatives = FALSE,
@@ -233,9 +235,26 @@ server <- function(input, output, session) {
   
   #--------------------------------------------------------------------------
   output$Hello <- renderPrint({
-    print("Hi")
+    search_guardian <- function(text, page = 1) {
+      r <- GET(
+        "https://content.guardianapis.com/search",
+        query = list(
+          `api-key` = news_key,
+          q = text,
+          page = page
+        )
+      )
+      stop_for_status(r)
+      json <- content(r, as = "text", encoding = "UTF-8")
+      fromJSON(json)$response
+    }
+    
+    response <- search_guardian(paste(input$destination), 2)$results %>% select(webTitle)
+    
+    return(response)
+    
   })
-  #-------------------------------------------
+  #-------------------------------------------------------------
 }
 
 
