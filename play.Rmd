@@ -24,16 +24,40 @@ Links I used:
 ## https://github.com/richierocks/yelp
 
 
+## GOOGLE MAPS
+
+```{r}
+library(mapsapi)
+maps_key = Sys.getenv("maps_key")
+register_google(key = maps_key)
+```
+
+
+```{r}
+doc = mp_directions(origin = "Davis", #from UCD Pav
+                      destination = "San jose",
+                      mode = c("driving", "transit", "walking", "bicycling"),
+                      alternatives = FALSE,
+                      waypoints = NULL,
+                      key = paste(maps_key))
+r = mp_get_routes(doc)
+```
+
+```{r}
+c = data.frame(c("distance",r$distance_text),c("duration",r$duration_text))
+names(c) = c("","")
+c
+```
+
 
 ## TWITTER
 ```{r}
 
 ## search for n tweets using the rstats hashtag
-rt <- search_tweets(
-  "#sacramento", n = 10, include_rts = FALSE
-)
+rt <- get_trends(
+  "sacramento")
 
-rt %>% select(text)
+rt %>% select(trend,tweet_volume)
 ```
 
 ## YELP
@@ -52,12 +76,16 @@ res <- POST("https://api.yelp.com/oauth2/token",
 
 token <- content(res)$access_token
 
+```
+
+
+```{r}
 yelp <- "https://api.yelp.com"
 term <- "cookies"
 location <- "Davis, CA"
 categories <- NULL
 limit <- 50
-radius <- 100
+radius <- 1000
 url <- modify_url(yelp, path = c("v3", "businesses", "search"),
                   query = list(term = term, location = location, 
                                limit = limit,
@@ -68,8 +96,17 @@ results <- content(res,as="text")
 
 yelp_results = data.frame(fromJSON(results))
 names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
-
-head(yelp_results)
 ```
+
+
+```{r}
+yelp_results %>% select(name,image_url,url,rating,coordinates)
+
+```
+
+```{r}
+yelp_results$pic = sprintf("![]https://s3-media4.fl.yelpcdn.com/bphoto/ZnsaEa6WU9Fq9VDcL_yzEw/o.jpg")
+```
+
 
 
