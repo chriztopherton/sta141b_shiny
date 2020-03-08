@@ -88,10 +88,6 @@ ui <- fluidPage(
 server <- function(input, output) {
 
     #yelp
-    Sys.setenv(yelp_client_ID='b1mvtJ6NN1Yr3llYIn0jkw')
-    Sys.setenv(yelp_key='jDwHiw2npYP2mjdD0vmcJW_PG3RDz7eA6gmLdPGWAObdQ_G2kBG4-5GE_VMpyCSRT_oWXdHV3u9HDwSPbL4qSDl9pnkgdFrD3ZASmcIB4NlUY320H-0jXtfGaOhdXnYx')
-    
-    
     yelp_client_ID = Sys.getenv("yelp_client_ID")
     yelp_key = Sys.getenv("yelp_key")
     
