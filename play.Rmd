@@ -90,23 +90,64 @@ url <- modify_url(yelp, path = c("v3", "businesses", "search"),
                   query = list(term = term, location = location, 
                                limit = limit,
                                radius = radius))
-res <- GET(url, add_headers('Authorization' = paste("Bearer", yelp_key)))
+res <- GET(url, add_headers('Authorization' = paste("Bearer", Sys.getenv("yelp_key"))))
 
 results <- content(res,as="text")
 
 yelp_results = data.frame(fromJSON(results))
 names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
+yelp_results
 ```
 
 
 ```{r}
-yelp_results %>% select(name,image_url,url,rating,coordinates)
+leaflet(yelp_results$coordinates) %>% addMarkers() %>% addTiles()
 
 ```
+
+
+
 
 ```{r}
-yelp_results$pic = sprintf("![]https://s3-media4.fl.yelpcdn.com/bphoto/ZnsaEa6WU9Fq9VDcL_yzEw/o.jpg")
+search_guardian <- function(text, page = 1) {
+      r <- GET(
+        "https://content.guardianapis.com/search",
+        query = list(
+          `api-key` = news_key,
+          q = text,
+          page = page
+        )
+      )
+      stop_for_status(r)
+      json <- content(r, as = "text", encoding = "UTF-8")
+      fromJSON(json)$response
+    }
+    
+    guard = search_guardian(paste(input$destination), 2)$results
+    guard$webUrl = paste0("<a href='",guard$webUrl,"'>",guard$webTitle,"</a>")
+    
+    response <- guard %>% select(webUrl)
 ```
-
+```{r}
+r = GET(
+      "https://api.openweathermap.org/data/2.5/weather",
+      query = list(
+        appid = Sys.getenv("weather_key"),
+        lat = geocode(paste(input$destination))$lat,
+        lon = geocode(paste(input$destination))$lon
+      ))
+    r
+    
+    stop_for_status(r)
+    
+    json <- content(r, as = "text")
+    data.frame(fromJSON(json)) %>% select(weather.description,
+                                          main.feels_like,
+                                          main.temp_min,
+                                          main.temp_max,
+                                          main.pressure,
+                                          main.humidity,
+                                          wind.speed)
+```
 
 

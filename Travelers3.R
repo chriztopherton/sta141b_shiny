@@ -45,12 +45,13 @@ createLink <- function(val) {
 #---------------------------------------------------------------------------------------------------------
 
 
-ui <- fluidPage(theme=shinytheme("slate"),
+ui <- fluidPage(theme=shinytheme("cyborg"),
                 
                 titlePanel(h1("TRAVELER'S GUIDE",align="center",style='background-color:teal;
                      padding-left: 15px',tags$img(height = 50,
                                                   width=70,
                                                   src ="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Icon-notepad.svg/1024px-Icon-notepad.svg.png"))),
+                navbarPage("Plan It!",tabPanel("Itinerary",fluidPage(
                 
     
                                     
@@ -58,90 +59,125 @@ ui <- fluidPage(theme=shinytheme("slate"),
                 fluidRow(
                                     sidebarPanel
                                     (
-                                      h1("Explore",align="center",tags$img(height = 250,
-                                                   width=300,
-                                                   src = "https://media.cntraveler.com/photos/59cd14cb9465da68882fb4f4/master/pass/Debate_GettyImages-585587819.jpg")),
+                                      h3("Explore",align="center",tags$img(height = 200,
+                                                   width=250,
+                                                   #src = "https://starecat.com/content/wp-content/uploads/pikachu-pokemon-people-with-fever-resting-in-bed-people-with-coronavirus-i-will-travel-across-the-land.jpg")),
+                                                   src = "https://www.moneycrashers.com/wp-content/uploads/2019/04/plan-road-trip-tips-ideas.jpg")),
                                       hr(),
                                       
+                                      fluidRow(
+                                        column(6,
                                       searchInput
                                       (
-                                        inputId = "origin", h2("Enter:",
+                                        inputId = "origin", h4("Enter:",
                                                                tags$img(height = 50,
                                                                         width=50,
                                                                         src ="https://image.flaticon.com/icons/svg/1531/1531126.svg")),
                                         value = "Davis",btnSearch = icon("search"),
                                         btnReset = icon("remove"),width = "450px"
-                                      ),
+                                      )),
                                       
-                                      
+                                      column(6,
                                       searchInput
                                       (
-                                        inputId = "destination",label = h2("Enter:",
+                                        inputId = "destination",label = h4("Enter:",
                                                                            tags$img(height = 50,
                                                                                     width=50,
                                                                                     src ="https://www.iconbunny.com/icons/media/catalog/product/2/6/2657.9-finish-icon-iconbunny.jpg")),
                                         value = "Sacramento",btnSearch = icon("search"),
                                         btnReset = icon("remove"),width = "450px"
-                                      ),
+                                      ))),
+                                      h5(textOutput("currentTime")),
+                                      fluidRow(box(tableOutput(outputId = "dist_dur"))),
+                                      fluidRow(box(tableOutput(outputId = "weather"))),
                                       
-                                      tableOutput(outputId = "dist_dur")
+                                     submitButton("Update!")
+
+                                  
                                       
                                     ),
                                     
                                     #----------------------------------------------------------------------------------------------------
                                     mainPanel
                                     (
-                                      h2("Google Maps",align="center",tags$img(height = 100,
-                                                                                        width=250,
-                                                                                        src ="https://www.onlinemarketingwhiz.com.au/wp-content/uploads/2018/07/google-maps-ios-icon-top.png")),
-                                      tableOutput(outputId = "weather"),
+                                      #box(width = 6,h4("Google Maps",align="center",tags$img(height = 100,width=220,src ="https://www.onlinemarketingwhiz.com.au/wp-content/uploads/2018/07/google-maps-ios-icon-top.png")),style = "padding: 5px;"),
+                                      #tableOutput(outputId = "weather"),
                                       leafletOutput(outputId = "map",
                                                     width="100%",
-                                                    height = "580")
+                                                    height = "630")
                                 
                                              
                                     )),
                                      br(),
                                       column(4,
-                                        h3("Yelp",align="center",tags$img(height = 100,
-                                                           width=100,
+                                        wellPanel(h4("Yelp",align="center",tags$img(height = 50,
+                                                           width=50,
                                                            src ="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Yelp.svg/1024px-Yelp.svg.png")),
-                                        dataTableOutput(outputId = "places")
-                                      ),
+                                                  style = "padding: 5px;"),
+                                                 
+                                        
+                                        wellPanel(dataTableOutput(outputId = "places"),style = "overflow-y:scroll; max-height: 670px"
+                                      )),
                                     
                 
                                       column(4,
-                                        h3("Twitter",align="center",tags$img(height = 100,
-                                                                       width=100,
+                                        wellPanel(h4("Twitter",align="center",tags$img(height = 50,
+                                                                       width=50,
                                                                        src ="https://cdn2.iconfinder.com/data/icons/social-media-2285/512/1_Twitter_colored_svg-512.png")),
-                                                 dataTableOutput(outputId = "tweets")
-                                      ),
+                                                  style = "padding: 5px;"),
+                                        
+                                                 wellPanel(dataTableOutput(outputId = "tweets"),style = "overflow-y:scroll; max-height: 670px"
+                                      )),
                                      
                                       column(4,
-                                        h3("News",align="center",tags$img(height = 100,
-                                                           width=100,
+                                        wellPanel(h4("News",align="center",tags$img(height = 50,
+                                                           width=50,
                                                            src ="https://img.favpng.com/20/25/11/newspaper-computer-icons-symbol-png-favpng-uxcxrxULJwf1TaT4zWQDsFUcw.jpg")),
-                                        dataTableOutput(outputId = "news")
+                                                  style = "padding: 5px;"),
+                                        wellPanel(dataTableOutput(outputId = "news"),style = "overflow-y:scroll; max-height: 800px")
                                         ))
+                ),
+                tabPanel("About",
+                         wellPanel(
+                         h3(strong("GOING TO SOMEPLACE NEW AND EXCITING?")),
+                         h4("Well...this is your ONE STOP SHOP for finding out more!"),
+                         p(strong("How to Navigate Traveler's Guide:")),
+                         p("We make use of 4 different API's ( Google Maps, Weather, Yelp, Twitter, News) to provide you with the complete picture
+                           of the culture, events, and all things unique to your place of interest. Start by entering a starting location
+                           as well as end ending and you'll be presented with an array of food places, conversations taking place, and
+                           recent news. Not sure how to dress appropriately? You'll find weather information right below and routes and directions 
+                           to get you there on time. Let's go have some fun!"),
+        
+                         hr()),
+                         wellPanel(
+                         h4(strong("Contributors")),
+                         tags$ul(
+                           tags$li("Christopher Ton: Front and Back end, User Documenation "),
+                           tags$li("Jesus Leon: News API, User Documentation "),
+                           tags$li("Xuecheng Zhang: Yelp API, User Documentation "),
+                           tags$li("Yinglin Luo: User Documenation ")
+                         ),
+                         hr()),
+                         wellPanel(
+                         h4(strong("References")),
+                         p("Google Maps API, using R package mapsapi: ", tags$a(href = "https://cran.rstudio.com/web/packages/mapsapi/vignettes/intro.html", "Introduction to package mapsapi")),
+                         p("Weather API:", tags$a(href = "https://openweathermap.org/", "OpenWeather")),
+                         p("Yelp API:", tags$a(href = "https://https://www.yelp.com/fusion/", "Yelp Fusion")),
+                         p("Twitter API, using rtweet: ", tags$a(href = "https://rtweet.info/", "rtweet")),
+                         p("News API: ", tags$a(href = "https://open-platform.theguardian.com/", "TheGuardianOpenPlatform")),
+                         h4("Please visit",tags$a(href = "https://github.com/chriztopherton/sta141b_shiny", "sta141b_shiny"), "to see our project. Thanks for visiting!!"),
+                         hr()
+                         ))
+                ,position = "static-top",collapsible = TRUE)
+)
 
 
 #------------------------------------------------------------------------------------------------------------------------
 server <- function(input, output, session) {
-  
-  doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
-                                destination = input$destination,
-                                mode = c("driving", "transit", "walking", "bicycling"),
-                                alternatives = FALSE,
-                                waypoints = NULL,
-                                key = paste(maps_key))
+  output$currentTime <- renderText({
+    invalidateLater(1000, session)
+    paste("The current time is", Sys.time())
   })
-  
-  
-  #the lines below can be commented out to prevent API requests
-  
-  #maps + route
-  
-  #given response object, use mp_get_routes to create a spatial layer of route lines
   
   output$weather = renderTable({
     r = GET(
@@ -157,15 +193,22 @@ server <- function(input, output, session) {
     
     json <- content(r, as = "text")
     data.frame(fromJSON(json)) %>% select(weather.description,
-                                          main.feels_like,
-                                          main.temp_min,
-                                          main.temp_max,
-                                          main.pressure,
-                                          main.humidity,
-                                          wind.speed)
+                                          main.feels_like)
+                                          #main.temp_min,
+                                          #main.temp_max,
+                                          #main.pressure,
+                                          #main.humidity,
+                                          #wind.speed)
     
   })
-  
+  #------------------------------------------------------------------------------------------------------------------------
+  doc = reactive({mp_directions(origin = input$origin, #from UCD Pav
+                                destination = input$destination,
+                                mode = c("driving", "transit", "walking", "bicycling"),
+                                alternatives = FALSE,
+                                waypoints = NULL,
+                                key = paste(maps_key))
+  })
   
   r = reactive({mp_get_routes(doc())})
   
@@ -173,7 +216,7 @@ server <- function(input, output, session) {
     c = data.frame(c("Distance",r()$distance_text),c("Duration",r()$duration_text))
     names(c) = c("","")
     c
-  })
+  },options = list(searching = FALSE))
   
   seg = reactive({mp_get_segments(doc())})
   
@@ -204,7 +247,6 @@ server <- function(input, output, session) {
   
   
   #------------------------------------------------------------------------------------------------------------------------
-  
   
   output$places <- renderDataTable({
     
@@ -237,8 +279,8 @@ server <- function(input, output, session) {
     yelp_results$link = paste0("<a href='",yelp_results$url,"'>",yelp_results$name,"</a>")
     yelp_results$pic = paste("<img src=",yelp_results$image_url,"height='150'></img>")
     
-    return(yelp_results  %>% select(link,pic,rating,price))
-  },escape=FALSE)
+    return(yelp_results %>% select(link,pic,rating,price))
+  },options = list(searching = FALSE),escape=FALSE)
   
   #------------------------------------------------------------------------------------------------------------------------
   
@@ -249,9 +291,9 @@ server <- function(input, output, session) {
     twit$link = paste0("<a href='",twit$url,"'>",twit$trend,"</a>")
     return(twit %>% select(link))
     
-  },escape=FALSE)
+  },options = list(searching = FALSE),escape=FALSE)
   
-  
+  #------------------------------------------------------------------------------------------------------------------------
   output$news <- renderDataTable({
     search_guardian <- function(text, page = 1) {
       r <- GET(
@@ -278,6 +320,6 @@ server <- function(input, output, session) {
   
 }
 
-
+#------------------------------------------------------------------------------------------------------------------------
 shinyApp(ui = ui, server = server)
 

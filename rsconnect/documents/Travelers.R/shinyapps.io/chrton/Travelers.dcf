@@ -1,0 +1,12 @@
+name: Travelers
+title: Travelers
+username:
+account: chrton
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1908814
+bundleId: 2854541
+url: https://chrton.shinyapps.io/Travelers/
+when: 1583430422.03606
+asMultiple: FALSE
+asStatic: FALSE
