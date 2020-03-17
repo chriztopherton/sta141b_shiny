@@ -26,6 +26,10 @@ library(jsonlite)
 ## install rtweet from CRAN
 library(httr)
 library(rtweet)
+library(reactable)
+library(httpuv)
+library(stringr)
+library(glue)
 #----------------------------------------------------------------------------------------------------
 #register for a free google maps api key at https://cloud.google.com/maps-platform/pricing
 maps_key = Sys.getenv("maps_key")
@@ -37,11 +41,6 @@ yelp_client_ID = Sys.getenv("yelp_client_ID")
 yelp_key = Sys.getenv("yelp_key")
 
 news_key = Sys.getenv("news_key")
-
-#---------------------------------------------------------------------------------------------------------
-createLink <- function(val) {
-  sprintf('<a href="" target="_blank" class="btn btn-primary">Info</a>',val)
-}
 #---------------------------------------------------------------------------------------------------------
 
 
@@ -91,7 +90,7 @@ ui <- fluidPage(theme=shinytheme("cyborg"),
                                       fluidRow(box(tableOutput(outputId = "dist_dur"))),
                                       fluidRow(box(tableOutput(outputId = "weather"))),
                                       
-                                     submitButton("Update!")
+                                     submitButton("Update")
 
                                   
                                       
@@ -109,27 +108,27 @@ ui <- fluidPage(theme=shinytheme("cyborg"),
                                              
                                     )),
                                      br(),
-                                      column(4,
+                                      column(6,
                                         wellPanel(h4("Yelp",align="center",tags$img(height = 50,
                                                            width=50,
                                                            src ="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Yelp.svg/1024px-Yelp.svg.png")),
                                                   style = "padding: 5px;"),
                                                  
                                         
-                                        wellPanel(dataTableOutput(outputId = "places"),style = "overflow-y:scroll; max-height: 670px"
+                                        wellPanel(dataTableOutput(outputId = "places"),style = "overflow-y:scroll; max-height: 520px"
                                       )),
                                     
                 
-                                      column(4,
-                                        wellPanel(h4("Twitter",align="center",tags$img(height = 50,
-                                                                       width=50,
-                                                                       src ="https://cdn2.iconfinder.com/data/icons/social-media-2285/512/1_Twitter_colored_svg-512.png")),
-                                                  style = "padding: 5px;"),
-                                        
-                                                 wellPanel(dataTableOutput(outputId = "tweets"),style = "overflow-y:scroll; max-height: 670px"
-                                      )),
+                                      # column(4,
+                                      #   wellPanel(h4("Twitter",align="center",tags$img(height = 50,
+                                      #                                  width=50,
+                                      #                                  src ="https://cdn2.iconfinder.com/data/icons/social-media-2285/512/1_Twitter_colored_svg-512.png")),
+                                      #             style = "padding: 5px;"),
+                                      #   
+                                      #            wellPanel(reactableOutput(outputId = "tweets"),style = "overflow-y:scroll; max-height: 670px"
+                                      # )),
                                      
-                                      column(4,
+                                      column(6,
                                         wellPanel(h4("News",align="center",tags$img(height = 50,
                                                            width=50,
                                                            src ="https://img.favpng.com/20/25/11/newspaper-computer-icons-symbol-png-favpng-uxcxrxULJwf1TaT4zWQDsFUcw.jpg")),
@@ -142,11 +141,11 @@ ui <- fluidPage(theme=shinytheme("cyborg"),
                          h3(strong("GOING TO SOMEPLACE NEW AND EXCITING?")),
                          h4("Well...this is your ONE STOP SHOP for finding out more!"),
                          p(strong("How to Navigate Traveler's Guide:")),
-                         p("We make use of 4 different API's ( Google Maps, Weather, Yelp, Twitter, News) to provide you with the complete picture
+                         p("We make use of 4 different API's ( Google Maps, Weather, Yelp, News) to provide you with the complete picture
                            of the culture, events, and all things unique to your place of interest. Start by entering a starting location
                            as well as end ending and you'll be presented with an array of food places, conversations taking place, and
-                           recent news. Not sure how to dress appropriately? You'll find weather information right below and routes and directions 
-                           to get you there on time. Let's go have some fun!"),
+                           recent news. Not sure how to dress appropriately? You'll find weather information right below the selection boxes and 
+                           routes and directions in the main panel to get you there on time. Let's go have some fun!"),
         
                          hr()),
                          wellPanel(
@@ -163,7 +162,7 @@ ui <- fluidPage(theme=shinytheme("cyborg"),
                          p("Google Maps API, using R package mapsapi: ", tags$a(href = "https://cran.rstudio.com/web/packages/mapsapi/vignettes/intro.html", "Introduction to package mapsapi")),
                          p("Weather API:", tags$a(href = "https://openweathermap.org/", "OpenWeather")),
                          p("Yelp API:", tags$a(href = "https://https://www.yelp.com/fusion/", "Yelp Fusion")),
-                         p("Twitter API, using rtweet: ", tags$a(href = "https://rtweet.info/", "rtweet")),
+                         #p("Twitter API, using rtweet: ", tags$a(href = "https://rtweet.info/", "rtweet")),
                          p("News API: ", tags$a(href = "https://open-platform.theguardian.com/", "TheGuardianOpenPlatform")),
                          h4("Please visit",tags$a(href = "https://github.com/chriztopherton/sta141b_shiny", "sta141b_shiny"), "to see our project. Thanks for visiting!!"),
                          hr()
@@ -248,11 +247,9 @@ server <- function(input, output, session) {
   
   #------------------------------------------------------------------------------------------------------------------------
   
-  output$places <- renderDataTable({
-    
-    
-    
-    #create token with provided id, key
+  
+  
+  yelp_results <- reactive({
     res <- POST("https://api.yelp.com/oauth2/token",
                 body = list(grant_type = "client_credentials",
                             client_id = yelp_client_ID,
@@ -274,24 +271,36 @@ server <- function(input, output, session) {
     
     results <- content(res,as="text")
     
-    yelp_results = data.frame(fromJSON(results))
-    names(yelp_results) = str_remove(list(names(yelp_results))[[1]],"businesses.")
-    yelp_results$link = paste0("<a href='",yelp_results$url,"'>",yelp_results$name,"</a>")
-    yelp_results$pic = paste("<img src=",yelp_results$image_url,"height='150'></img>")
-    
-    return(yelp_results %>% select(link,pic,rating,price))
+    fromJSON(results)$businesses %>% 
+      select(name,image_url,url,review_count,categories,rating,display_phone,price) %>% 
+      mutate(link = paste0("<a href='",url,"'>",name,"</a>"),
+             pic = paste("<img src=",image_url,"height='150'></img>"))
+  })
+  
+  
+  output$places <- renderDataTable({
+    return(yelp_results() %>% select(Place = link, Price = price, Rating = rating, Img = pic))
   },options = list(searching = FALSE),escape=FALSE)
   
   #------------------------------------------------------------------------------------------------------------------------
   
-  output$tweets <- renderDataTable({
-    rt <- get_trends(
-      paste(input$destination))
-    twit = rt %>% select(trend,url,tweet_volume)
-    twit$link = paste0("<a href='",twit$url,"'>",twit$trend,"</a>")
-    return(twit %>% select(link))
-    
-  },options = list(searching = FALSE),escape=FALSE)
+  # twit <- reactive({
+  #   get_trends(paste(input$destination))  %>% 
+  #     select(trend,url) %>% 
+  #     mutate(link = paste0("<a href='",url,"'>",trend,"</a>")) %>% 
+  #     select(link)
+  # })
+  # 
+  # output$tweets <- renderReactable({
+  #   
+  #   reactable::reactable(twit(),
+  #             filterable = TRUE, searchable = FALSE, bordered = TRUE, striped = TRUE, highlight = TRUE,
+  #             showSortable = TRUE, defaultSortOrder = "desc", defaultPageSize = 25, showPageSizeOptions = TRUE, pageSizeOptions = c(25, 50, 75, 100, 200), 
+  #             columns = list(
+  #              link = colDef(html=TRUE)
+  #             ))
+  # 
+  # })
   
   #------------------------------------------------------------------------------------------------------------------------
   output$news <- renderDataTable({
@@ -316,7 +325,7 @@ server <- function(input, output, session) {
     
     return(response)
     
-  },escape=FALSE)
+  },options = list(searching = FALSE),escape=FALSE)
   
 }
 
